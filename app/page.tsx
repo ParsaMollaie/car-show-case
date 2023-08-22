@@ -1,32 +1,60 @@
-"use client"
-import { CustomFilter, Hero, SearchBar } from "@/components";
+"use client";
+import { CarCard, CustomFilter, Hero, SearchBar, ShowMore } from "@/components";
+import { fuels, yearsOfProduction } from "@/constants";
 import { fetchCars } from "@/utils";
-import { useEffect } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
-export default async function Home() {
+export default function Home() {
 
-  const allCars = await fetchCars();
-  const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars;
+  // const allCars = await fetchCars({
+  //   manufacturer: searchParams.manufacturer || '',
+  //   year: searchParams.year || 2022,
+  //   fuel: searchParams.fuel || '',
+  //   limit: searchParams.limit || 10,
+  //   model: searchParams.model || '',
+  // });
 
-  useEffect(() =>{() => test()} ,[])
+  const [allCars, setAllCars] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const test = async() => {
-    var myHeaders = new Headers();
-    myHeaders.append("X-RapidAPI-Key", "c5bbb8c8cdmshc25b950ba12ac1ep1a2622jsna9264c3f1e7e");
-    myHeaders.append("X-RapidAPI-Host", "cars-by-api-ninjas.p.rapidapi.com");
-    myHeaders.append("Content-Type", "application/json");
-    
-    var requestOptions :any = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow'
-    };
-    
-    fetch("https://cars-by-api-ninjas.p.rapidapi.com/v1/cars?model=corolla", requestOptions)
-      .then(response => response.text())
-      .then(result => console.log(result))
-    
+  //Search state
+  const [manufacturer, setManufacturer] = useState("")
+  const [model, setModel] = useState("")
+
+  //filter state
+  const [fuel, setFuel] = useState("")
+  const [year, setYear] = useState("")
+
+  //pagination state
+  const [limit, setLimit] = useState(10)
+
+  const getCars = async () => {
+    setLoading(true);
+    try {
+      const result = await fetchCars({
+        manufacturer: manufacturer || '',
+        year: year || 2022,
+        fuel: fuel || '',
+        limit: limit || 10,
+        model: model || '',
+      });
+
+      setAllCars(result);
+      
+    } catch (error) {
+      console.log(error);
+    }finally{
+      setLoading(false);
+    }
+   
   }
+
+  useEffect(() => {
+    getCars();
+  }, [manufacturer, year, fuel, limit, model])
+
+  const isDataEmpty = !Array.isArray(allCars) || allCars.length < 1 || !allCars;
 
 
   return (
@@ -39,18 +67,35 @@ export default async function Home() {
         </div>
 
         <div className="home__filters">
-          <SearchBar />
+          <SearchBar setManufacturer = {setManufacturer} setModel ={setModel} />
 
           <div className="home__filter-container">
-            <CustomFilter />
-            <CustomFilter />
+            <CustomFilter title = 'fuel' options = {fuels} setFilter= {setFuel} />
+            <CustomFilter title = 'year' options = {yearsOfProduction} setFilter={setYear} />
 
           </div>
 
         </div>
 
-        {!isDataEmpty ? (
-          <section>we have cars</section>
+        {allCars.length > 0 ? (
+          <section>
+            <div className="home__cars-wrapper">
+            {allCars?.map((car) => (
+              <CarCard car={car} />
+            ))}
+            </div>
+            
+            {loading && (
+              <div className="mt-16 w-full flex justify-center items-center">
+                <Image src='/loader.svg' width={50} height={50} alt="loader" className="object-contain" />
+              </div>
+            )}
+            <ShowMore
+              pageNumber={limit / 10}
+              isNext = {limit > allCars.length}
+              setLimit = {setLimit}
+             />
+            </section>
         ): (
           <div className="home__error-container">
             <h2 className="text-black font-bold text-xl">Oops, no result</h2>

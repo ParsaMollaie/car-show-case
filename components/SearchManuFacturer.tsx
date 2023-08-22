@@ -7,7 +7,7 @@ import { manufacturers } from '@/constants';
 
 import React from 'react'
 
-const SearchManuFacturer = ({ manufacturer, setManuFacturer }: SearchManufacturerProps) => {
+const SearchManuFacturer = ({ selected, setSelected }: SearchManufacturerProps) => {
 
   const [query, setQuery] = useState('')
 
@@ -23,7 +23,7 @@ const SearchManuFacturer = ({ manufacturer, setManuFacturer }: SearchManufacture
 
   return (
     <div className='search-manufacturer'>
-      <Combobox value={manufacturer} onChange={setManuFacturer}>
+      <Combobox value={selected} onChange={setSelected}>
         <div className='relative w-full'>
           {/* Button for the combobox. Click on the icon to see the complete dropdown */}
           <Combobox.Button className='absolute top-[14px]'>
